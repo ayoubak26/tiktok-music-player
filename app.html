@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Music Player - No Scrolling</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px 20px;
+        }
+
+        .login-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .input-group input {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            padding: 10px;
+            background: #fadbd8;
+            border-radius: 8px;
+            display: none;
+            margin-bottom: 15px;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .player-section {
+            display: none;
+        }
+
+        .player-section.active {
+            display: block;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            float: right;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .clear-both {
+            clear: both;
+        }
+
+        .playlist-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .playlist-header h2 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .playlist-header p {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .songs-container {
+            max-height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .song-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .song-item:hover {
+            background: #f0f1f3;
+            transform: translateX(5px);
+        }
+
+        .song-item.active {
+            background: #e8f1ff;
+            border-left-color: #667eea;
+        }
+
+        .song-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+
+        .song-artist {
+            color: #999;
+            font-size: 13px;
+        }
+
+        .player-controls {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .now-playing {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .now-playing-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .now-playing-artist {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .controls-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .control-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .control-btn.pause {
+            background: #764ba2;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                border-radius: 0;
+                max-width: 100%;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .content {
+                flex: 1;
+                overflow-y: auto;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 TikTok Music Player</h1>
+            <p>Listen to music from your FYP - No Scrolling</p>
+        </div>
+
+        <div class="content">
+            <!-- Login Section -->
+            <div class="login-section" id="loginSection">
+                <div class="error" id="errorMessage"></div>
+                
+                <div class="input-group">
+                    <label for="username">TikTok Username</label>
+                    <input type="text" id="username" placeholder="@yourusername" autocomplete="off">
+                </div>
+
+                <div class="input-group">
+                    <label for="sessionToken">TikTok Session Token</label>
+                    <input type="password" id="sessionToken" placeholder="Paste your session token here">
+                </div>
+
+                <div class="input-group" style="font-size: 12px; color: #999;">
+                    <p>📱 How to get your session token:</p>
+                    <ol style="margin-left: 15px; margin-top: 5px;">
+                        <li>Open TikTok in browser</li>
+                        <li>Open DevTools (F12)</li>
+                        <li>Go to Application → Cookies</li>
+                        <li>Copy the <strong>sessionid</strong> value</li>
+                    </ol>
+                </div>
+
+                <button class="login-btn" onclick="login()">
+                    <span id="loginText">🎧 Start Listening</span>
+                    <span class="loading" id="loginLoading">Loading your FYP...</span>
+                </button>
+            </div>
+
+            <!-- Player Section -->
+            <div class="player-section" id="playerSection">
+                <button class="logout-btn" onclick="logout()">Logout</button>
+                <div class="clear-both"></div>
+
+                <div class="playlist-header">
+                    <h2>Your FYP Music</h2>
+                    <p id="songCount">0 songs loaded</p>
+                </div>
+
+                <div class="songs-container" id="songsContainer">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎵</div>
+                        <p>Loading your music...</p>
+                    </div>
+                </div>
+
+                <div class="player-controls">
+                    <div class="now-playing">
+                        <div class="now-playing-title" id="currentTitle">Select a song</div>
+                        <div class="now-playing-artist" id="currentArtist">Tap to play</div>
+                    </div>
+
+                    <audio id="audioPlayer"></audio>
+
+                    <div class="progress-bar" onclick="seekAudio(event)">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="time-info">
+                        <span id="currentTime">0:00</span>
+                        <span id="duration">0:00</span>
+                    </div>
+
+                    <div class="controls-buttons">
+                        <button class="control-btn" onclick="previousSong()">⏮️ Previous</button>
+                        <button class="control-btn" id="playPauseBtn" onclick="togglePlay()">▶️ Play</button>
+                        <button class="control-btn" onclick="nextSong()">Next ⏭️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audioPlayer = document.getElementById('audioPlayer');
+        let songs = [];
+        let currentSongIndex = 0;
+        let isPlaying = false;
+        let userLoggedIn = false;
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const sessionToken = document.getElementById('sessionToken').value.trim();
+            const errorDiv = document.getElementById('errorMessage');
+            const loginBtn = document.querySelector('.login-btn');
+            const loginText = document.getElementById('loginText');
+            const loginLoading = document.getElementById('loginLoading');
+
+            errorDiv.classList.remove('show');
+
+            if (!username || !sessionToken) {
+                errorDiv.textContent = '❌ Please enter both username and session token';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginText.style.display = 'none';
+            loginLoading.classList.add('show');
+
+            try {
+                const mockSongs = generateMockSongs();
+                songs = mockSongs;
+                userLoggedIn = true;
+
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('playerSection').classList.add('active');
+
+                renderSongs();
+                updateSongCount();
+
+                setTimeout(() => {
+                    loginBtn.disabled = false;
+                    loginText.style.display = 'inline';
+                    loginLoading.classList.remove('show');
+                }, 800);
+
+            } catch (error) {
+                errorDiv.textContent = '❌ Error loading your FYP. Please try again.';
+                errorDiv.classList.add('show');
+                loginBtn.disabled = false;
+                loginText.style.display = 'inline';
+                loginLoading.classList.remove('show');
+            }
+        }
+
+        function generateMockSongs() {
+            const artists = ['The Weeknd', 'Dua Lipa', 'Taylor Swift', 'Post Malone', 'Billie Eilish', 'Ariana Grande', 'Drake', 'Olivia Rodrigo', 'Harry Styles'];
+            const titles = [
+                'Blinding Lights', 'Levitating', 'Anti-Hero', 'Sunroof', 'Physical',
+                'Bad Guy', 'thank u, next', 'One Dance', 'drivers license', 'As It Was',
+                'Flowers', 'Hips Don\'t Lie', 'Uptown Funk', 'Shape of You', 'Dance Monkey'
+            ];
+
+            const mockSongs = [];
+            for (let i = 0; i < 15; i++) {
+                mockSongs.push({
+                    id: i,
+                    title: titles[i % titles.length] + (i > titles.length ? ` (${Math.floor(i / titles.length)})` : ''),
+                    artist: artists[i % artists.length],
+                    url: `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${i + 1}.mp3`,
+                    duration: Math.random() * 120 + 180
+                });
+            }
+            return mockSongs;
+        }
+
+        function renderSongs() {
+            const container = document.getElementById('songsContainer');
+            container.innerHTML = '';
+
+            songs.forEach((song, index) => {
+                const songEl = document.createElement('div');
+                songEl.className = 'song-item' + (index === currentSongIndex ? ' active' : '');
+                songEl.onclick = () => playSong(index);
+                songEl.innerHTML = `
+                    <div class="song-title">${song.title}</div>
+                    <div class="song-artist">${song.artist} • ${formatTime(song.duration)}</div>
+                `;
+                container.appendChild(songEl);
+            });
+        }
+
+        function updateSongCount() {
+            document.getElementById('songCount').textContent = `${songs.length} songs loaded`;
+        }
+
+        function playSong(index) {
+            currentSongIndex = index;
+            const song = songs[index];
+
+            document.getElementById('currentTitle').textContent = song.title;
+            document.getElementById('currentArtist').textContent = song.artist;
+            document.getElementById('duration').textContent = formatTime(song.duration);
+
+            document.querySelectorAll('.song-item').forEach((el, i) => {
+                el.classList.toggle('active', i === index);
+            });
+
+            audioPlayer.src = song.url;
+            audioPlayer.play();
+            isPlaying = true;
+            updatePlayButton();
+        }
+
+        function togglePlay() {
+            if (!songs.length) return;
+
+            if (isPlaying) {
+                audioPlayer.pause();
+                isPlaying = false;
+            } else {
+                if (!audioPlayer.src) {
+                    playSong(currentSongIndex);
+                } else {
+                    audioPlayer.play();
+                    isPlaying = true;
+                }
+            }
+            updatePlayButton();
+        }
+
+        function nextSong() {
+            if (!songs.length) return;
+            currentSongIndex = (currentSongIndex + 1) % songs.length;
+            playSong(currentSongIndex);
+        }
+
+        function previousSong() {
+            if (!songs.length) return;
+            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+            playSong(currentSongIndex);
+        }
+
+        function updatePlayButton() {
+            const btn = document.getElementById('playPauseBtn');
+            btn.textContent = isPlaying ? '⏸️ Pause' : '▶️ Play';
+            btn.classList.toggle('pause', isPlaying);
+        }
+
+        function seekAudio(event) {
+            if (!audioPlayer.src) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const percent = (event.clientX - rect.left) / rect.width;
+            audioPlayer.currentTime = percent * audioPlayer.duration;
+        }
+
+        function logout() {
+            userLoggedIn = false;
+            songs = [];
+            isPlaying = false;
+            audioPlayer.pause();
+            audioPlayer.src = '';
+
+            document.getElementById('username').value = '';
+            document.getElementById('sessionToken').value = '';
+            document.getElementById('errorMessage').classList.remove('show');
+            document.getElementById('loginSection').style.display = 'flex';
+            document.getElementById('playerSection').classList.remove('active');
+        }
+
+        audioPlayer.addEventListener('timeupdate', () => {
+            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('currentTime').textContent = formatTime(audioPlayer.currentTime);
+        });
+
+        audioPlayer.addEventListener('ended', () => {
+            nextSong();
+        });
+
+        audioPlayer.addEventListener('loadedmetadata', () => {
+            document.getElementById('duration').textContent = formatTime(audioPlayer.duration);
+        });
+    </script>
+</body>
+</html>
